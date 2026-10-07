@@ -1,0 +1,10 @@
+.git
+**/__pycache__
+**/*.pyc
+src/docs
+src/*.zip
+src/**/blender
+src/esp_firmware
+src/development
+src/init_scripts
+src/simple_PID_configurator

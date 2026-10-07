@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Конфиг CycloneDDS 0.10.x. По умолчанию — автоопределение интерфейса.
+     Если робот и ноутбук в разных подсетях или мультикаст не проходит, задай пиры:
+     <Discovery><Peers><Peer address="192.168.1.10"/></Peers></Discovery> внутри <Domain>. -->
+<CycloneDDS xmlns="https://cdds.io/config"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://cdds.io/config https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclonedds.xsd">
+  <Domain id="any">
+    <General>
+      <Interfaces>
+        <NetworkInterface autodetermine="true" priority="default" multicast="default" />
+      </Interfaces>
+    </General>
+  </Domain>
+</CycloneDDS>

@@ -1,0 +1,50 @@
+# Образ lowlevel для jetbot_mirea (ROS2 Humble на Jetson Nano).
+# Интерактивно:   docker compose run --rm lowlevel
+# В фоне + вход:  docker compose up -d lowlevel && docker exec -it jetbot_lowlevel bash
+# Автозапуск драйверов: docker compose --profile bringup up bringup
+
+x-lowlevel: &lowlevel
+  image: jetbot-lowlevel:humble
+  network_mode: host          # DDS-обмен с ноутбуком без NAT
+  ipc: host
+  privileged: true            # доступ к /dev (ESP32, лидар, USB-камера) с горячим подключением
+  runtime: ${DOCKER_RUNTIME:-runc}
+  environment:
+    - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    - CYCLONEDDS_URI=file:///etc/cyclonedds/cyclonedds.xml
+    - TERM=${TERM:-xterm-256color}
+  volumes:
+    - /dev:/dev
+    - /run/udev:/run/udev:ro
+    - ./cyclonedds.xml:/etc/cyclonedds/cyclonedds.xml:ro
+    # Режим разработки: код с хоста поверх собранного в образе (затем cb внутри контейнера)
+    # - ./src:/ws/src
+
+services:
+  lowlevel:
+    <<: *lowlevel
+    build:
+      context: .
+      args:
+        WITH_NAV2: ${WITH_NAV2:-0}
+        BUILD_JOBS: ${BUILD_JOBS:-2}
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    container_name: jetbot_lowlevel
+    stdin_open: true
+    tty: true
+    restart: "no"
+    command: bash
+
+  bringup:
+    <<: *lowlevel
+    profiles: ["bringup"]
+    container_name: jetbot_bringup
+    restart: "no"
+    command:
+      - ros2
+      - launch
+      - completed_scripts_jetbot
+      - jetbot_sensors_and_motors.launch.py
+      - enable_front_camera:=${ENABLE_CAMERA:-False}
